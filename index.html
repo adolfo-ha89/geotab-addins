@@ -4,107 +4,112 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Utilización de Combustible</title>
+</head>
+<body>
+<div id="caeo-root" class="caeo">
 <style>
-:root{
+/* Estilos escopados bajo .caeo — MyGeotab inyecta el add-in dentro de su propia
+   página y descarta el <head>, así que el CSS vive en el body y va prefijado. */
+.caeo{
   --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
   --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,0.10);
   --s1:#2a78d6; --good:#0ca30c; --crit:#d03b3b; --chip:#eef3fa;
+  background:var(--page); color:var(--ink);
+  font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;
+  padding:0 16px 32px; border-radius:8px;
 }
 @media (prefers-color-scheme: dark){
-  :root{
+  .caeo{
     --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
     --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10);
     --s1:#3987e5; --good:#0ca30c; --crit:#e66767; --chip:#1c2836;
   }
 }
-*{box-sizing:border-box}
-body{margin:0; background:var(--page); color:var(--ink); font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; padding-inline:16px; padding-block:0 32px;}
-[hidden]{display:none!important;}
-.wrap{max-width:1120px; margin:0 auto;}
-header.top{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; padding-block:22px 4px;}
-header.top h1{font-size:22px; font-weight:700; margin:0; letter-spacing:-0.2px;}
-header.top .sub{color:var(--ink-2); font-size:13px;}
-.panel{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px;}
-.controls{display:flex; flex-wrap:wrap; gap:12px 20px; align-items:flex-end; margin-top:12px;}
-.ctl-group{display:flex; flex-direction:column; gap:6px;}
-.ctl-label{font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); font-weight:600;}
-.seg{display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden;}
-.seg button{background:transparent; border:0; color:var(--ink-2); padding:7px 14px; font:inherit; font-size:13px; cursor:pointer;}
-.seg button+button{border-left:1px solid var(--border);}
-.seg button.on{background:var(--s1); color:#fff; font-weight:600;}
-.dates{display:flex; gap:8px; align-items:center;}
-input[type=date],input[type=number],select{background:var(--surface); color:var(--ink); border:1px solid var(--axis); border-radius:7px; padding:6px 8px; font:inherit; font-size:13px;}
-input[type=number]{width:88px; text-align:right;}
-.price-row{display:flex; gap:14px; flex-wrap:wrap;}
-.price{display:flex; flex-direction:column; gap:4px;}
-.price label{font-size:12px; color:var(--ink-2);}
-.price .in{position:relative;}
-.price .in span{position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px;}
-.price input{padding-left:22px;}
-.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:14px;}
-.kpi{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px;}
-.kpi .v{font-size:24px; font-weight:700; letter-spacing:-0.3px; margin-top:2px;}
-.kpi .v small{font-size:13px; font-weight:600; color:var(--ink-2); margin-left:2px;}
-.kpi .l{font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600;}
-.kpi .n{font-size:12px; color:var(--ink-2); margin-top:2px;}
-.charts{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:10px; margin-top:10px;}
-.chart-card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px 8px;}
-.chart-card h3{margin:0 0 4px; font-size:13px; font-weight:600; color:var(--ink-2);}
-.chart-card svg{display:block; width:100%; height:auto;}
-h2.sec{font-size:15px; margin:26px 0 8px; font-weight:700;}
-h2.sec small{font-weight:400; color:var(--muted); font-size:12.5px; margin-left:8px;}
-.rule-bar{display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
-.rule-bar select{max-width:340px; flex:1 1 240px;}
-.btn{background:var(--s1); color:#fff; border:0; border-radius:7px; padding:7px 14px; font:inherit; font-size:13px; font-weight:600; cursor:pointer;}
-.chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
-.chip{display:inline-flex; align-items:center; gap:6px; background:var(--chip); color:var(--ink); border:1px solid var(--border); border-radius:999px; padding:3px 6px 3px 10px; font-size:12.5px;}
-.chip b{font-weight:600;}
-.chip button{background:transparent; border:0; color:var(--muted); cursor:pointer; font-size:14px; line-height:1; padding:2px 4px; border-radius:50%;}
-.chip button:hover{color:var(--crit);}
-.tbl-wrap{overflow-x:auto; margin-top:10px; background:var(--surface); border:1px solid var(--border); border-radius:10px;}
-table{border-collapse:collapse; width:100%; min-width:720px; font-size:13px;}
-th,td{padding:8px 12px; text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;}
-th{font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); font-weight:600; border-bottom:1px solid var(--axis); cursor:pointer; user-select:none;}
-th.exc-col{color:var(--s1);}
-th:first-child,td:first-child{text-align:left;}
-th:nth-child(2),td:nth-child(2){text-align:left;}
-tbody tr{border-bottom:1px solid var(--grid);}
-tbody tr:last-child{border-bottom:0;}
-td .unit{font-weight:600;}
-td .plate{color:var(--muted); font-size:11.5px; margin-left:6px;}
-tfoot td{border-top:1px solid var(--axis); font-weight:700;}
-.best{color:var(--good); font-weight:600;}
-.worst{color:var(--crit); font-weight:600;}
-.note{color:var(--muted); font-size:12px; margin-top:10px;}
-.tooltip{position:fixed; pointer-events:none; background:var(--ink); color:var(--page); padding:6px 9px; border-radius:6px; font-size:12px; z-index:10; opacity:0; transition:opacity .08s; max-width:240px; white-space:nowrap;}
-.legend-note{font-size:11.5px; color:var(--muted); margin-top:2px;}
-.sc-head{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:4px;}
-.sc-head h3{margin:0;}
-.seg-sm button{padding:4px 10px; font-size:12px;}
-.sc-verdict{font-size:12.5px; color:var(--ink-2); margin:6px 2px 4px; line-height:1.5;}
-.sc-verdict b{font-variant-numeric:tabular-nums;}
-footer{margin-top:28px; color:var(--muted); font-size:12px; line-height:1.6;}
-#content{transition:opacity .15s;}
-#content.loading{opacity:.45; pointer-events:none;}
-.status{display:flex; align-items:center; gap:10px; margin:14px 0; color:var(--ink-2); font-size:13px;}
-.spin{width:16px;height:16px;border:2px solid var(--grid);border-top-color:var(--s1);border-radius:50%;animation:sp 0.8s linear infinite;}
-@keyframes sp{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion: reduce){.spin{animation:none}}
-.err{background:var(--surface); border:1px solid var(--crit); color:var(--crit); border-radius:10px; padding:12px 14px; margin:14px 0; font-size:13px;}
-@media (max-width:640px){ header.top h1{font-size:19px;} .kpi .v{font-size:20px;} }
+.caeo, .caeo *{box-sizing:border-box;}
+.caeo [hidden]{display:none!important;}
+.caeo .wrap{max-width:1120px; margin:0 auto;}
+.caeo header.top{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; padding:22px 0 4px;}
+.caeo header.top h1{font-size:22px; font-weight:700; margin:0; letter-spacing:-0.2px; color:var(--ink);}
+.caeo header.top .sub{color:var(--ink-2); font-size:13px;}
+.caeo .panel{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px;}
+.caeo .controls{display:flex; flex-wrap:wrap; gap:12px 20px; align-items:flex-end; margin-top:12px;}
+.caeo .ctl-group{display:flex; flex-direction:column; gap:6px;}
+.caeo .ctl-label{font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); font-weight:600;}
+.caeo .seg{display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden;}
+.caeo .seg button{background:transparent; border:0; color:var(--ink-2); padding:7px 14px; font:inherit; font-size:13px; cursor:pointer; margin:0; box-shadow:none; text-transform:none;}
+.caeo .seg button+button{border-left:1px solid var(--border);}
+.caeo .seg button.on{background:var(--s1); color:#fff; font-weight:600;}
+.caeo .dates{display:flex; gap:8px; align-items:center;}
+.caeo input[type=date],.caeo input[type=number],.caeo select{background:var(--surface); color:var(--ink); border:1px solid var(--axis); border-radius:7px; padding:6px 8px; font:inherit; font-size:13px; margin:0; height:auto; width:auto;}
+.caeo input[type=number]{width:88px; text-align:right;}
+.caeo .price-row{display:flex; gap:14px; flex-wrap:wrap;}
+.caeo .price{display:flex; flex-direction:column; gap:4px;}
+.caeo .price label{font-size:12px; color:var(--ink-2); margin:0;}
+.caeo .price .in{position:relative;}
+.caeo .price .in span{position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px;}
+.caeo .price input{padding-left:22px;}
+.caeo .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:14px;}
+.caeo .kpi{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px;}
+.caeo .kpi .v{font-size:24px; font-weight:700; letter-spacing:-0.3px; margin-top:2px; color:var(--ink);}
+.caeo .kpi .v small{font-size:13px; font-weight:600; color:var(--ink-2); margin-left:2px;}
+.caeo .kpi .l{font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600;}
+.caeo .kpi .n{font-size:12px; color:var(--ink-2); margin-top:2px;}
+.caeo .charts{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:10px; margin-top:10px;}
+.caeo .chart-card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px 8px;}
+.caeo .chart-card h3{margin:0 0 4px; font-size:13px; font-weight:600; color:var(--ink-2);}
+.caeo .chart-card svg{display:block; width:100%; height:auto;}
+.caeo h2.sec{font-size:15px; margin:26px 0 8px; font-weight:700; color:var(--ink);}
+.caeo h2.sec small{font-weight:400; color:var(--muted); font-size:12.5px; margin-left:8px;}
+.caeo .rule-bar{display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
+.caeo .rule-bar select{max-width:340px; flex:1 1 240px;}
+.caeo .btn{background:var(--s1); color:#fff; border:0; border-radius:7px; padding:7px 14px; font:inherit; font-size:13px; font-weight:600; cursor:pointer; margin:0; text-transform:none;}
+.caeo .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+.caeo .chip{display:inline-flex; align-items:center; gap:6px; background:var(--chip); color:var(--ink); border:1px solid var(--border); border-radius:999px; padding:3px 6px 3px 10px; font-size:12.5px;}
+.caeo .chip b{font-weight:600;}
+.caeo .chip button{background:transparent; border:0; color:var(--muted); cursor:pointer; font-size:14px; line-height:1; padding:2px 4px; border-radius:50%; margin:0;}
+.caeo .chip button:hover{color:var(--crit);}
+.caeo .tbl-wrap{overflow-x:auto; margin-top:10px; background:var(--surface); border:1px solid var(--border); border-radius:10px;}
+.caeo table{border-collapse:collapse; width:100%; min-width:720px; font-size:13px; margin:0; background:transparent;}
+.caeo th,.caeo td{padding:8px 12px; text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; border:0; background:transparent; color:var(--ink);}
+.caeo th{font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); font-weight:600; border-bottom:1px solid var(--axis); cursor:pointer; user-select:none;}
+.caeo th.exc-col{color:var(--s1);}
+.caeo th:first-child,.caeo td:first-child{text-align:left;}
+.caeo th:nth-child(2),.caeo td:nth-child(2){text-align:left;}
+.caeo tbody tr{border-bottom:1px solid var(--grid);}
+.caeo tbody tr:last-child{border-bottom:0;}
+.caeo td .unit{font-weight:600;}
+.caeo td .plate{color:var(--muted); font-size:11.5px; margin-left:6px;}
+.caeo tfoot td{border-top:1px solid var(--axis); font-weight:700;}
+.caeo .best{color:var(--good); font-weight:600;}
+.caeo .worst{color:var(--crit); font-weight:600;}
+.caeo .note{color:var(--muted); font-size:12px; margin-top:10px;}
+.caeo .tooltip{position:fixed; pointer-events:none; background:var(--ink); color:var(--page); padding:6px 9px; border-radius:6px; font-size:12px; z-index:9999; opacity:0; transition:opacity .08s; max-width:240px; white-space:nowrap;}
+.caeo .legend-note{font-size:11.5px; color:var(--muted); margin-top:2px;}
+.caeo .sc-head{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:4px;}
+.caeo .sc-head h3{margin:0;}
+.caeo .seg-sm button{padding:4px 10px; font-size:12px;}
+.caeo .sc-verdict{font-size:12.5px; color:var(--ink-2); margin:6px 2px 4px; line-height:1.5;}
+.caeo .sc-verdict b{font-variant-numeric:tabular-nums;}
+.caeo footer{margin-top:28px; color:var(--muted); font-size:12px; line-height:1.6;}
+#caeoContent{transition:opacity .15s;}
+#caeoContent.loading{opacity:.45; pointer-events:none;}
+.caeo .status{display:flex; align-items:center; gap:10px; margin:14px 0; color:var(--ink-2); font-size:13px;}
+.caeo .spin{width:16px;height:16px;border:2px solid var(--grid);border-top-color:var(--s1);border-radius:50%;animation:caeoSp 0.8s linear infinite;}
+@keyframes caeoSp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.caeo .spin{animation:none}}
+.caeo .err{background:var(--surface); border:1px solid var(--crit); color:var(--crit); border-radius:10px; padding:12px 14px; margin:14px 0; font-size:13px;}
+@media (max-width:640px){ .caeo header.top h1{font-size:19px;} .caeo .kpi .v{font-size:20px;} }
 </style>
-</head>
-<body>
 <div class="wrap">
 <header class="top">
   <h1>Utilización de Combustible</h1>
   <span class="sub">Diésel por unidad · datos en vivo de MyGeotab</span>
 </header>
 
-<div class="status" id="status" hidden><div class="spin"></div><span id="statusTxt">Cargando datos…</span></div>
-<div class="err" id="err" hidden></div>
+<div class="status" id="caeoStatus" hidden><div class="spin"></div><span id="caeoStatusTxt">Cargando datos…</span></div>
+<div class="err" id="caeoErr" hidden></div>
 
-<div id="content">
+<div id="caeoContent">
 <div class="panel">
   <div class="controls">
     <div class="ctl-group">
@@ -133,7 +138,7 @@ footer{margin-top:28px; color:var(--muted); font-size:12px; line-height:1.6;}
   <div class="legend-note" id="rangeNote"></div>
 </div>
 
-<div class="kpis" id="kpis"></div>
+<div class="kpis" id="caeoKpis"></div>
 
 <div class="charts">
   <div class="chart-card"><h3>Kilómetros por día</h3><div id="chKm"></div></div>
@@ -150,7 +155,7 @@ footer{margin-top:28px; color:var(--muted); font-size:12px; line-height:1.6;}
 </div>
 
 <h2 class="sec">Detalle por unidad <small>clic en un encabezado para ordenar · asigna la región de cada unidad para su precio</small></h2>
-<div class="tbl-wrap"><table id="tbl"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+<div class="tbl-wrap"><table id="caeoTbl"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
 <p class="note" id="tblNote"></p>
 
 <div class="charts" id="scatterWrap" hidden>
@@ -174,7 +179,8 @@ footer{margin-top:28px; color:var(--muted); font-size:12px; line-height:1.6;}
 </footer>
 </div>
 </div>
-<div class="tooltip" id="tip"></div>
+<div class="tooltip" id="caeoTip"></div>
+</div>
 
 <script>
 "use strict";
@@ -229,8 +235,8 @@ function range(){
 }
 
 /* ---------- API loading ---------- */
-function setStatus(txt){ var st=document.getElementById('status'); st.hidden=!txt; if(txt)document.getElementById('statusTxt').textContent=txt; document.getElementById('content').classList.toggle('loading',!!txt); }
-function showErr(msg){ var e=document.getElementById('err'); e.hidden=!msg; if(msg)e.textContent=msg; }
+function setStatus(txt){ var st=document.getElementById('caeoStatus'); st.hidden=!txt; if(txt)document.getElementById('caeoStatusTxt').textContent=txt; document.getElementById('caeoContent').classList.toggle('loading',!!txt); }
+function showErr(msg){ var e=document.getElementById('caeoErr'); e.hidden=!msg; if(msg)e.textContent=msg; }
 
 function apiMulti(calls){ return new Promise(function(res,rej){ API.multiCall(calls,res,rej); }); }
 
@@ -332,7 +338,7 @@ function agg(){
 }
 
 /* ---------- tooltip ---------- */
-var tip=document.getElementById('tip');
+var tip=document.getElementById('caeoTip');
 function showTip(html,ev){tip.innerHTML=html;tip.style.opacity=1;moveTip(ev);}
 function moveTip(ev){var x=Math.min(ev.clientX+12,innerWidth-tip.offsetWidth-8);tip.style.left=x+'px';tip.style.top=(ev.clientY-34)+'px';}
 function hideTip(){tip.style.opacity=0;}
@@ -473,7 +479,7 @@ function render(){
     ['Diésel en ralentí',fuel>0?fmt(100*idleF/fuel,1):'0','%',fmt(idleF)+' L sin avanzar'],
   ];
   if(S.rules.length) kpis.push(['Alertas (reglas agregadas)',fmt(excT),'','en el periodo']);
-  document.getElementById('kpis').innerHTML=kpis.map(function(k){return '<div class="kpi"><div class="l">'+k[0]+'</div><div class="v">'+k[1]+'<small>'+k[2]+'</small></div><div class="n">'+k[3]+'</div></div>';}).join('');
+  document.getElementById('caeoKpis').innerHTML=kpis.map(function(k){return '<div class="kpi"><div class="l">'+k[0]+'</div><div class="v">'+k[1]+'<small>'+k[2]+'</small></div><div class="n">'+k[3]+'</div></div>';}).join('');
 
   var kmByDay=days.map(function(d){ var s=0; DEVICES.forEach(function(dev){var r=(DAILY[dev.id]||{})[d]; if(r)s+=r.km;}); return s; });
   var effByDay=days.map(function(d){ var km=0,f=0; DEVICES.forEach(function(dev){var r=(DAILY[dev.id]||{})[d]; if(r&&r.fuel>0.5){km+=r.km;f+=r.fuel;}}); return f>0.5?km/f:null; });
@@ -502,7 +508,7 @@ function renderTable(units){
   var cols=[{k:'name',l:'Unidad'},{k:'reg',l:'Región'},{k:'km',l:'Km'},{k:'fuel',l:'Diésel (L)'},
             {k:'eff',l:'Rend. (km/L)'},{k:'cost',l:'Costo diésel'},{k:'cpk',l:'$/km'}]
            .concat(ruleCols.map(function(rc){return {k:'exc:'+rc.rid,l:rc.name,exc:true};}));
-  var thead=document.querySelector('#tbl thead');
+  var thead=document.querySelector('#caeoTbl thead');
   thead.innerHTML='<tr>'+cols.map(function(c){return '<th data-k="'+c.k+'" class="'+(c.exc?'exc-col':'')+'" title="Ordenar">'+escapeHtml(c.l)+(sortKey===c.k?(sortDir<0?' ↓':' ↑'):'')+'</th>';}).join('')+'</tr>';
   Array.prototype.forEach.call(thead.querySelectorAll('th'),function(th){
     th.addEventListener('click',function(){ var k=th.getAttribute('data-k'); if(sortKey===k)sortDir*=-1; else{sortKey=k;sortDir=-1;} render(); });
@@ -519,7 +525,7 @@ function renderTable(units){
   var effs=units.filter(function(u){return u.eff!=null;}).map(function(u){return u.eff;});
   var bestE=Math.max.apply(null,effs.concat([-Infinity])), worstE=Math.min.apply(null,effs.concat([Infinity]));
 
-  var tb=document.querySelector('#tbl tbody');
+  var tb=document.querySelector('#caeoTbl tbody');
   tb.innerHTML=sorted.map(function(u){
     var effCls=u.eff==null?'':(u.eff===bestE&&effs.length>1?'best':(u.eff===worstE&&effs.length>1?'worst':''));
     return '<tr>'+
@@ -539,7 +545,7 @@ function renderTable(units){
 
   var t={km:0,fuel:0,cost:0,kmF:0}; var excTot=S.rules.map(function(){return 0;});
   units.forEach(function(u){ t.km+=u.km; if(u.fuel>0.5){t.fuel+=u.fuel;t.cost+=u.cost;t.kmF+=u.km;} S.rules.forEach(function(rid,i){excTot[i]+=u.exc[rid]||0;}); });
-  document.querySelector('#tbl tfoot').innerHTML=units.length?'<tr>'+
+  document.querySelector('#caeoTbl tfoot').innerHTML=units.length?'<tr>'+
     '<td>Total flota</td><td></td><td>'+fmt(t.km)+'</td><td>'+fmt(t.fuel)+'</td>'+
     '<td>'+(t.fuel>0?fmt(t.kmF/t.fuel,2):'—')+'</td><td>'+money(t.cost)+'</td>'+
     '<td>'+(t.kmF>0?money(t.cost/t.kmF,2):'—')+'</td>'+
