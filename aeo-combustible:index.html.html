@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Utilización de Combustible</title>
+<style>
+:root{
+  --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,0.10);
+  --s1:#2a78d6; --good:#0ca30c; --crit:#d03b3b; --chip:#eef3fa;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10);
+    --s1:#3987e5; --good:#0ca30c; --crit:#e66767; --chip:#1c2836;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--page); color:var(--ink); font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; padding-inline:16px; padding-block:0 32px;}
+[hidden]{display:none!important;}
+.wrap{max-width:1120px; margin:0 auto;}
+header.top{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; padding-block:22px 4px;}
+header.top h1{font-size:22px; font-weight:700; margin:0; letter-spacing:-0.2px;}
+header.top .sub{color:var(--ink-2); font-size:13px;}
+.panel{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px;}
+.controls{display:flex; flex-wrap:wrap; gap:12px 20px; align-items:flex-end; margin-top:12px;}
+.ctl-group{display:flex; flex-direction:column; gap:6px;}
+.ctl-label{font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); font-weight:600;}
+.seg{display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden;}
+.seg button{background:transparent; border:0; color:var(--ink-2); padding:7px 14px; font:inherit; font-size:13px; cursor:pointer;}
+.seg button+button{border-left:1px solid var(--border);}
+.seg button.on{background:var(--s1); color:#fff; font-weight:600;}
+.dates{display:flex; gap:8px; align-items:center;}
+input[type=date],input[type=number],select{background:var(--surface); color:var(--ink); border:1px solid var(--axis); border-radius:7px; padding:6px 8px; font:inherit; font-size:13px;}
+input[type=number]{width:88px; text-align:right;}
+.price-row{display:flex; gap:14px; flex-wrap:wrap;}
+.price{display:flex; flex-direction:column; gap:4px;}
+.price label{font-size:12px; color:var(--ink-2);}
+.price .in{position:relative;}
+.price .in span{position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px;}
+.price input{padding-left:22px;}
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:14px;}
+.kpi{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px;}
+.kpi .v{font-size:24px; font-weight:700; letter-spacing:-0.3px; margin-top:2px;}
+.kpi .v small{font-size:13px; font-weight:600; color:var(--ink-2); margin-left:2px;}
+.kpi .l{font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600;}
+.kpi .n{font-size:12px; color:var(--ink-2); margin-top:2px;}
+.charts{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:10px; margin-top:10px;}
+.chart-card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px 8px;}
+.chart-card h3{margin:0 0 4px; font-size:13px; font-weight:600; color:var(--ink-2);}
+.chart-card svg{display:block; width:100%; height:auto;}
+h2.sec{font-size:15px; margin:26px 0 8px; font-weight:700;}
+h2.sec small{font-weight:400; color:var(--muted); font-size:12.5px; margin-left:8px;}
+.rule-bar{display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
+.rule-bar select{max-width:340px; flex:1 1 240px;}
+.btn{background:var(--s1); color:#fff; border:0; border-radius:7px; padding:7px 14px; font:inherit; font-size:13px; font-weight:600; cursor:pointer;}
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+.chip{display:inline-flex; align-items:center; gap:6px; background:var(--chip); color:var(--ink); border:1px solid var(--border); border-radius:999px; padding:3px 6px 3px 10px; font-size:12.5px;}
+.chip b{font-weight:600;}
+.chip button{background:transparent; border:0; color:var(--muted); cursor:pointer; font-size:14px; line-height:1; padding:2px 4px; border-radius:50%;}
+.chip button:hover{color:var(--crit);}
+.tbl-wrap{overflow-x:auto; margin-top:10px; background:var(--surface); border:1px solid var(--border); border-radius:10px;}
+table{border-collapse:collapse; width:100%; min-width:720px; font-size:13px;}
+th,td{padding:8px 12px; text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;}
+th{font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); font-weight:600; border-bottom:1px solid var(--axis); cursor:pointer; user-select:none;}
+th.exc-col{color:var(--s1);}
+th:first-child,td:first-child{text-align:left;}
+th:nth-child(2),td:nth-child(2){text-align:left;}
+tbody tr{border-bottom:1px solid var(--grid);}
+tbody tr:last-child{border-bottom:0;}
+td .unit{font-weight:600;}
+td .plate{color:var(--muted); font-size:11.5px; margin-left:6px;}
+tfoot td{border-top:1px solid var(--axis); font-weight:700;}
+.best{color:var(--good); font-weight:600;}
+.worst{color:var(--crit); font-weight:600;}
+.note{color:var(--muted); font-size:12px; margin-top:10px;}
+.tooltip{position:fixed; pointer-events:none; background:var(--ink); color:var(--page); padding:6px 9px; border-radius:6px; font-size:12px; z-index:10; opacity:0; transition:opacity .08s; max-width:240px; white-space:nowrap;}
+.legend-note{font-size:11.5px; color:var(--muted); margin-top:2px;}
+.sc-head{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:4px;}
+.sc-head h3{margin:0;}
+.seg-sm button{padding:4px 10px; font-size:12px;}
+.sc-verdict{font-size:12.5px; color:var(--ink-2); margin:6px 2px 4px; line-height:1.5;}
+.sc-verdict b{font-variant-numeric:tabular-nums;}
+footer{margin-top:28px; color:var(--muted); font-size:12px; line-height:1.6;}
+#content{transition:opacity .15s;}
+#content.loading{opacity:.45; pointer-events:none;}
+.status{display:flex; align-items:center; gap:10px; margin:14px 0; color:var(--ink-2); font-size:13px;}
+.spin{width:16px;height:16px;border:2px solid var(--grid);border-top-color:var(--s1);border-radius:50%;animation:sp 0.8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.spin{animation:none}}
+.err{background:var(--surface); border:1px solid var(--crit); color:var(--crit); border-radius:10px; padding:12px 14px; margin:14px 0; font-size:13px;}
+@media (max-width:640px){ header.top h1{font-size:19px;} .kpi .v{font-size:20px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <h1>Utilización de Combustible</h1>
+  <span class="sub">Diésel por unidad · datos en vivo de MyGeotab</span>
+</header>
+
+<div class="status" id="status" hidden><div class="spin"></div><span id="statusTxt">Cargando datos…</span></div>
+<div class="err" id="err" hidden></div>
+
+<div id="content">
+<div class="panel">
+  <div class="controls">
+    <div class="ctl-group">
+      <span class="ctl-label">Periodo</span>
+      <div class="seg" role="group" aria-label="Periodo">
+        <button id="p7" type="button">Últimos 7 días</button>
+        <button id="p30" type="button">Últimos 30 días</button>
+        <button id="pc" type="button">Personalizado</button>
+      </div>
+    </div>
+    <div class="ctl-group" id="customDates" hidden>
+      <span class="ctl-label">Rango (máx. 92 días)</span>
+      <div class="dates">
+        <input type="date" id="dFrom"> <span style="color:var(--muted)">→</span> <input type="date" id="dTo">
+      </div>
+    </div>
+    <div class="ctl-group">
+      <span class="ctl-label">Precio del diésel ($/L, editable)</span>
+      <div class="price-row">
+        <div class="price"><label for="prP">Pacífico</label><div class="in"><span>$</span><input type="number" id="prP" step="0.01" min="0"></div></div>
+        <div class="price"><label for="prN">Norte</label><div class="in"><span>$</span><input type="number" id="prN" step="0.01" min="0"></div></div>
+        <div class="price"><label for="prB">Bajío</label><div class="in"><span>$</span><input type="number" id="prB" step="0.01" min="0"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="legend-note" id="rangeNote"></div>
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="charts">
+  <div class="chart-card"><h3>Kilómetros por día</h3><div id="chKm"></div></div>
+  <div class="chart-card"><h3>Rendimiento por día (km/L)</h3><div id="chEff"></div></div>
+</div>
+
+<h2 class="sec">Alertas en el periodo <small>agrega reglas activas de la plataforma para cruzarlas con el rendimiento</small></h2>
+<div class="panel">
+  <div class="rule-bar">
+    <select id="ruleSel" aria-label="Regla"></select>
+    <button class="btn" id="ruleAdd" type="button">Agregar al dashboard</button>
+  </div>
+  <div class="chips" id="ruleChips"></div>
+</div>
+
+<h2 class="sec">Detalle por unidad <small>clic en un encabezado para ordenar · asigna la región de cada unidad para su precio</small></h2>
+<div class="tbl-wrap"><table id="tbl"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+<p class="note" id="tblNote"></p>
+
+<div class="charts" id="scatterWrap" hidden>
+  <div class="chart-card" style="grid-column:1/-1">
+    <div class="sc-head">
+      <h3>¿Las alertas afectan el rendimiento? <span style="font-weight:400">(reglas agregadas, periodo seleccionado)</span></h3>
+      <div class="seg seg-sm" role="group" aria-label="Eje de alertas">
+        <button id="scPer100" type="button">Alertas por 100 km</button>
+        <button id="scTotal" type="button">Alertas totales</button>
+      </div>
+    </div>
+    <div id="chScatter"></div>
+    <p class="sc-verdict" id="scVerdict"></p>
+  </div>
+</div>
+
+<footer>
+  Fuente: API de MyGeotab en la base actual — viajes (Trip), consumo (FuelUsed) y excepciones (ExceptionEvent), agregados por día local del navegador.<br>
+  El costo se calcula con el precio de la región asignada a cada unidad; precios, regiones y reglas agregadas se guardan en este navegador.<br>
+  Add-In de Métrica Móvil.
+</footer>
+</div>
+</div>
+<div class="tooltip" id="tip"></div>
+
+<script>
+"use strict";
+/* =========================================================
+   Utilización de Combustible — MyGeotab Add-In
+   Consulta Trip, FuelUsed y ExceptionEvent en vivo con la
+   sesión del usuario. Registrado como geotab.addin.combustibleAeo
+   ========================================================= */
+
+/* ---------- state ---------- */
+var API = null;
+var LSKEY = 'mm_fuel_addin_v1';
+var DEF = {preset:'7d', from:null, to:null, prices:{P:26.50,N:26.50,B:26.50}, regions:{}, rules:[]};
+var S = load();
+function load(){ try{var s=JSON.parse(localStorage.getItem(LSKEY)); if(s&&s.prices) return Object.assign({},JSON.parse(JSON.stringify(DEF)),s);}catch(e){} return JSON.parse(JSON.stringify(DEF)); }
+function save(){ try{localStorage.setItem(LSKEY,JSON.stringify(S));}catch(e){} }
+
+var REGIONS = {P:'Pacífico', N:'Norte', B:'Bajío'};
+var DEVICES = [];            // [{id,name,plate}]
+var RULES = [];              // [{id,name}]
+var DAILY = {};              // deviceId -> day -> {km,fuel,idleF,idleS,driveS,trips}
+var EXC = {};                // ruleId -> deviceId -> day -> count
+var LOADED_RANGE = null;     // [a,b] currently in DAILY/EXC
+var MAX_CUSTOM_DAYS = 92;
+
+/* ---------- helpers ---------- */
+var fmt = function(n,d){ d=d||0; return n.toLocaleString('es-MX',{minimumFractionDigits:d,maximumFractionDigits:d}); };
+var money = function(n,d){ d=d||0; return '$'+fmt(n,d); };
+function pad2(n){return (n<10?'0':'')+n;}
+function todayLocal(){ var d=new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function localDayOf(iso){ var d=new Date(iso); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function addDays(day,n){ var p=day.split('-'); var d=new Date(+p[0],+p[1]-1,+p[2]+n,12); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function dayStartIso(day){ var p=day.split('-'); return new Date(+p[0],+p[1]-1,+p[2],0,0,0,0).toISOString(); }
+function dayEndIso(day){ var p=day.split('-'); return new Date(+p[0],+p[1]-1,+p[2],23,59,59,999).toISOString(); }
+function esDate(s){ var p=s.split('-'); var M=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']; return (+p[2])+' '+M[+p[1]-1]+' '+p[0]; }
+function daysIn(a,b){ var out=[],d=a; while(d<=b){out.push(d); d=addDays(d,1);} return out; }
+function durSec(s){ // "HH:MM:SS(.fff)" o "d.HH:MM:SS"
+  if(!s) return 0; var days=0, t=s;
+  if(s.indexOf('.')>-1 && s.indexOf('.')<s.indexOf(':')){ var sp=s.split('.'); days=+sp[0]||0; t=sp.slice(1).join('.'); }
+  var q=t.split(':'); return days*86400+(+q[0]||0)*3600+(+q[1]||0)*60+Math.round(parseFloat(q[2])||0);
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+function range(){
+  var T=todayLocal();
+  if(S.preset==='7d') return [addDays(T,-6),T];
+  if(S.preset==='30d') return [addDays(T,-29),T];
+  var a=S.from||addDays(T,-6), b=S.to||T;
+  if(a>b){var x=a;a=b;b=x;}
+  if(daysIn(a,b).length>MAX_CUSTOM_DAYS) a=addDays(b,-(MAX_CUSTOM_DAYS-1));
+  return [a,b];
+}
+
+/* ---------- API loading ---------- */
+function setStatus(txt){ var st=document.getElementById('status'); st.hidden=!txt; if(txt)document.getElementById('statusTxt').textContent=txt; document.getElementById('content').classList.toggle('loading',!!txt); }
+function showErr(msg){ var e=document.getElementById('err'); e.hidden=!msg; if(msg)e.textContent=msg; }
+
+function apiMulti(calls){ return new Promise(function(res,rej){ API.multiCall(calls,res,rej); }); }
+
+function loadCore(){
+  return apiMulti([
+    ['Get',{typeName:'Device', resultsLimit:5000, propertySelector:{fields:['id','name','licensePlate']}}],
+    ['Get',{typeName:'Rule', resultsLimit:2000, propertySelector:{fields:['id','name','activeTo']}}]
+  ]).then(function(r){
+    DEVICES = (r[0]||[]).map(function(d){return {id:d.id,name:d.name||d.id,plate:d.licensePlate&&d.licensePlate.indexOf('*')!==0?d.licensePlate:''};});
+    var now = new Date().toISOString();
+    RULES = (r[1]||[]).filter(function(x){return !x.activeTo || x.activeTo>now;})
+                      .map(function(x){return {id:x.id,name:x.name||x.id};})
+                      .sort(function(a,b){return a.name.localeCompare(b.name,'es');});
+    S.rules = S.rules.filter(function(rid){ return RULES.some(function(r){return r.id===rid;}); });
+  });
+}
+
+function loadRange(){
+  var r=range(), a=r[0], b=r[1];
+  var from=dayStartIso(a), to=dayEndIso(b);
+  setStatus('Cargando viajes y consumo…'); showErr('');
+  return apiMulti([
+    ['Get',{typeName:'Trip', search:{fromDate:from,toDate:to}, resultsLimit:50000,
+            propertySelector:{fields:['device','stop','distance','idlingDuration','drivingDuration']}}],
+    ['Get',{typeName:'FuelUsed', search:{fromDate:from,toDate:to}, resultsLimit:50000,
+            propertySelector:{fields:['device','dateTime','totalFuelUsed','totalIdlingFuelUsedL']}}]
+  ]).then(function(res){
+    DAILY={};
+    (res[0]||[]).forEach(function(t){
+      if(!t.device||!t.stop) return;
+      var day=localDayOf(t.stop); if(day<a||day>b) return;
+      var d=DAILY[t.device.id]||(DAILY[t.device.id]={});
+      var row=d[day]||(d[day]={km:0,fuel:0,idleF:0,idleS:0,driveS:0,trips:0});
+      row.km+=t.distance||0; row.idleS+=durSec(t.idlingDuration); row.driveS+=durSec(t.drivingDuration); row.trips++;
+    });
+    (res[1]||[]).forEach(function(f){
+      if(!f.device||!f.dateTime) return;
+      var day=localDayOf(f.dateTime); if(day<a||day>b) return;
+      var d=DAILY[f.device.id]||(DAILY[f.device.id]={});
+      var row=d[day]||(d[day]={km:0,fuel:0,idleF:0,idleS:0,driveS:0,trips:0});
+      row.fuel+=f.totalFuelUsed||0; row.idleF+=f.totalIdlingFuelUsedL||0;
+    });
+    LOADED_RANGE=[a,b];
+    return loadRules(true);
+  });
+}
+
+function loadRules(all){
+  var r=range(), a=r[0], b=r[1];
+  var need = all ? S.rules.slice() : S.rules.filter(function(rid){ return !EXC[rid]; });
+  if(all) EXC={};
+  if(!need.length) return Promise.resolve();
+  setStatus('Cargando excepciones…');
+  var from=dayStartIso(a), to=dayEndIso(b);
+  return apiMulti(need.map(function(rid){
+    return ['Get',{typeName:'ExceptionEvent', search:{fromDate:from,toDate:to,ruleSearch:{id:rid}}, resultsLimit:50000,
+                   propertySelector:{fields:['device','activeFrom']}}];
+  })).then(function(res){
+    need.forEach(function(rid,i){
+      var m={};
+      (res[i]||[]).forEach(function(e){
+        if(!e.device||!e.activeFrom) return;
+        var day=localDayOf(e.activeFrom); if(day<a||day>b) return;
+        var d=m[e.device.id]||(m[e.device.id]={});
+        d[day]=(d[day]||0)+1;
+      });
+      EXC[rid]=m;
+    });
+  });
+}
+
+function refresh(fullRange){
+  var p = fullRange ? loadRange() : loadRules(false);
+  p.then(function(){ setStatus(null); render(); })
+   .catch(function(e){ setStatus(null); showErr('No se pudieron cargar los datos: '+(e&&e.message?e.message:e)); });
+}
+
+/* ---------- aggregation ---------- */
+function agg(){
+  var r=range(), a=r[0], b=r[1], days=daysIn(a,b), units=[];
+  DEVICES.forEach(function(dev){
+    var dd=DAILY[dev.id]||{};
+    var km=0,fuel=0,idleF=0,idleS=0,driveS=0,trips=0;
+    days.forEach(function(day){ var x=dd[day]; if(!x)return; km+=x.km;fuel+=x.fuel;idleF+=x.idleF;idleS+=x.idleS;driveS+=x.driveS;trips+=x.trips; });
+    var exc={}, excT=0;
+    S.rules.forEach(function(rid){
+      var c=0, rd=(EXC[rid]||{})[dev.id]||{};
+      days.forEach(function(day){ c+=rd[day]||0; });
+      exc[rid]=c; excT+=c;
+    });
+    if(km<0.5&&fuel<0.5&&excT===0) return;
+    var reg=S.regions[dev.id]||'P';
+    var price=S.prices[reg]||0;
+    var cost=fuel*price;
+    units.push({dev:dev,km:km,fuel:fuel,idleF:idleF,idleS:idleS,driveS:driveS,trips:trips,reg:reg,cost:cost,
+                eff:fuel>0.5?km/fuel:null, cpk:(fuel>0.5&&km>0.5)?cost/km:null, exc:exc, excT:excT});
+  });
+  return {a:a,b:b,days:days,units:units};
+}
+
+/* ---------- tooltip ---------- */
+var tip=document.getElementById('tip');
+function showTip(html,ev){tip.innerHTML=html;tip.style.opacity=1;moveTip(ev);}
+function moveTip(ev){var x=Math.min(ev.clientX+12,innerWidth-tip.offsetWidth-8);tip.style.left=x+'px';tip.style.top=(ev.clientY-34)+'px';}
+function hideTip(){tip.style.opacity=0;}
+
+/* ---------- charts (SVG) ---------- */
+var NS='http://www.w3.org/2000/svg';
+function el(n,at){var e=document.createElementNS(NS,n);for(var k in at)e.setAttribute(k,at[k]);return e;}
+function niceMax(v){ if(v<=0)return 1; var p=Math.pow(10,Math.floor(Math.log10(v))); var m=v/p; var s=m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10; return s*p; }
+function axisAndGrid(svg,W,H,pad,maxV,fmtY){
+  for(var i=0;i<=4;i++){
+    var v=maxV*i/4, y=H-pad.b-(H-pad.t-pad.b)*i/4;
+    svg.appendChild(el('line',{x1:pad.l,x2:W-pad.r,y1:y,y2:y,stroke:i===0?'var(--axis)':'var(--grid)','stroke-width':1}));
+    var t=el('text',{x:pad.l-6,y:y+4,'text-anchor':'end',fill:'var(--muted)','font-size':10.5});
+    t.textContent=fmtY(v); svg.appendChild(t);
+  }
+}
+function xLabels(svg,days,X,H,pad){
+  var step=Math.ceil(days.length/8);
+  days.forEach(function(d,i){ if(i%step!==0&&i!==days.length-1)return;
+    var t=el('text',{x:X(i),y:H-pad.b+14,'text-anchor':'middle',fill:'var(--muted)','font-size':10});
+    var p=d.slice(5).split('-'); t.textContent=p[1]+'/'+p[0]; svg.appendChild(t);});
+}
+function barChart(mount,days,vals,unit,dec){
+  mount.innerHTML='';
+  var W=520,H=210,pad={l:44,r:8,t:10,b:26};
+  var svg=el('svg',{viewBox:'0 0 '+W+' '+H,role:'img'});
+  var maxV=niceMax(Math.max.apply(null,vals.concat([1])));
+  axisAndGrid(svg,W,H,pad,maxV,function(v){return fmt(v);});
+  var iw=(W-pad.l-pad.r)/days.length;
+  var bw=Math.max(2,Math.min(26,iw-2));
+  days.forEach(function(d,i){
+    var h=(H-pad.t-pad.b)*(vals[i]/maxV);
+    var r=el('rect',{x:pad.l+i*iw+(iw-bw)/2,y:H-pad.b-h,width:bw,height:Math.max(h,0),rx:Math.min(3,bw/2),fill:'var(--s1)'});
+    r.addEventListener('mousemove',function(ev){showTip('<b>'+esDate(d)+'</b><br>'+fmt(vals[i],dec)+' '+unit,ev);});
+    r.addEventListener('mouseleave',hideTip);
+    svg.appendChild(r);
+  });
+  xLabels(svg,days,function(i){return pad.l+i*iw+iw/2;},H,pad);
+  mount.appendChild(svg);
+}
+function lineChart(mount,days,vals,unit){
+  mount.innerHTML='';
+  var W=520,H=210,pad={l:44,r:26,t:10,b:26};
+  var svg=el('svg',{viewBox:'0 0 '+W+' '+H,role:'img'});
+  var present=vals.filter(function(v){return v!=null;});
+  var maxV=niceMax(present.length?Math.max.apply(null,present):1);
+  axisAndGrid(svg,W,H,pad,maxV,function(v){return fmt(v,1);});
+  var X=function(i){return pad.l+(W-pad.l-pad.r)*(days.length===1?0.5:i/(days.length-1));};
+  var Y=function(v){return H-pad.b-(H-pad.t-pad.b)*(v/maxV);};
+  var path='',started=false;
+  vals.forEach(function(v,i){ if(v==null){started=false;return;} path+=(started?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1); started=true; });
+  svg.appendChild(el('path',{d:path,fill:'none',stroke:'var(--s1)','stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+  vals.forEach(function(v,i){ if(v==null)return;
+    var c=el('circle',{cx:X(i),cy:Y(v),r:4,fill:'var(--s1)',stroke:'var(--surface)','stroke-width':2});
+    c.addEventListener('mousemove',function(ev){showTip('<b>'+esDate(days[i])+'</b><br>'+fmt(v,2)+' '+unit,ev);});
+    c.addEventListener('mouseleave',hideTip);
+    svg.appendChild(c);
+  });
+  xLabels(svg,days,X,H,pad);
+  mount.appendChild(svg);
+}
+function corr(pts){ /* Pearson r + recta de regresión */
+  var n=pts.length; if(n<3) return null;
+  var mx=0,my=0; pts.forEach(function(p){mx+=p.x;my+=p.y;}); mx/=n; my/=n;
+  var sxx=0,syy=0,sxy=0;
+  pts.forEach(function(p){sxx+=(p.x-mx)*(p.x-mx); syy+=(p.y-my)*(p.y-my); sxy+=(p.x-mx)*(p.y-my);});
+  if(sxx<=0||syy<=0) return null;
+  var slope=sxy/sxx;
+  return {r:sxy/Math.sqrt(sxx*syy), slope:slope, b:my-slope*mx};
+}
+function scatterChart(mount,pts,per100){
+  mount.innerHTML='';
+  var W=760,H=290,pad={l:46,r:16,t:28,b:34};
+  var svg=el('svg',{viewBox:'0 0 '+W+' '+H,role:'img'});
+  var maxX=niceMax(Math.max.apply(null,pts.map(function(p){return p.x;}).concat([1])));
+  var maxY=niceMax(Math.max.apply(null,pts.map(function(p){return p.y;}).concat([1])));
+  axisAndGrid(svg,W,H,pad,maxY,function(v){return fmt(v,1);});
+  var PX=function(v){return pad.l+(W-pad.l-pad.r)*(v/maxX);}, PY=function(v){return H-pad.b-(H-pad.t-pad.b)*(v/maxY);};
+  for(var i=0;i<=4;i++){
+    var v=maxX*i/4;
+    var t=el('text',{x:PX(v),y:H-pad.b+16,'text-anchor':'middle',fill:'var(--muted)','font-size':10.5}); t.textContent=fmt(v,per100&&maxX<20?1:0); svg.appendChild(t);
+  }
+  var xt=el('text',{x:(pad.l+W-pad.r)/2,y:H-4,'text-anchor':'middle',fill:'var(--muted)','font-size':11});
+  xt.textContent=per100?'Alertas por cada 100 km recorridos (reglas agregadas)':'Alertas en el periodo (reglas agregadas)'; svg.appendChild(xt);
+  var yt=el('text',{x:pad.l-34,y:14,fill:'var(--muted)','font-size':11}); yt.textContent='km/L'; svg.appendChild(yt);
+  var st=corr(pts);
+  if(st){
+    var yAt=function(x){return st.slope*x+st.b;};
+    var x0=0,x1=maxX;
+    if(st.slope!==0){
+      var c1=(0-st.b)/st.slope, c2=(maxY-st.b)/st.slope;
+      var lo=Math.min(c1,c2), hi=Math.max(c1,c2);
+      x0=Math.max(x0,lo); x1=Math.min(x1,hi);
+    }
+    if(x1>x0&&yAt(x0)>=-1e-9&&yAt(x0)<=maxY+1e-9){
+      svg.appendChild(el('line',{x1:PX(x0),y1:PY(yAt(x0)),x2:PX(x1),y2:PY(yAt(x1)),
+        stroke:'var(--muted)','stroke-width':1.5,'stroke-dasharray':'6 5'}));
+    }
+  }
+  pts.forEach(function(p){
+    var cx=PX(p.x), cy=PY(p.y);
+    var c=el('circle',{cx:cx,cy:cy,r:6,fill:'var(--s1)',stroke:'var(--surface)','stroke-width':2});
+    var xtxt=per100?(fmt(p.raw)+' alertas ('+fmt(p.x,1)+' por 100 km)'):(fmt(p.raw)+' alertas');
+    c.addEventListener('mousemove',function(ev){showTip('<b>'+p.label+'</b><br>'+xtxt+' · '+fmt(p.y,2)+' km/L',ev);});
+    c.addEventListener('mouseleave',hideTip);
+    svg.appendChild(c);
+    var t=el('text',{x:cx+9,y:cy+4,fill:'var(--ink-2)','font-size':11,'font-weight':600}); t.textContent=p.label; svg.appendChild(t);
+  });
+  mount.appendChild(svg);
+  return st;
+}
+
+/* ---------- rendering ---------- */
+var sortKey='km', sortDir=-1;
+function render(){
+  var A=agg(), a=A.a, b=A.b, days=A.days, units=A.units;
+  document.getElementById('rangeNote').textContent='Mostrando: '+esDate(a)+' – '+esDate(b)+' ('+days.length+' día'+(days.length===1?'':'s')+')';
+
+  ['p7','p30','pc'].forEach(function(id){document.getElementById(id).classList.remove('on');});
+  document.getElementById(S.preset==='7d'?'p7':S.preset==='30d'?'p30':'pc').classList.add('on');
+  document.getElementById('customDates').hidden = S.preset!=='custom';
+
+  var fUnits=units.filter(function(u){return u.fuel>0.5;});
+  var kmAll=units.reduce(function(s,u){return s+u.km;},0);
+  var kmF=fUnits.reduce(function(s,u){return s+u.km;},0);
+  var fuel=fUnits.reduce(function(s,u){return s+u.fuel;},0);
+  var idleF=fUnits.reduce(function(s,u){return s+u.idleF;},0);
+  var cost=fUnits.reduce(function(s,u){return s+u.cost;},0);
+  var eff=fuel>0?kmF/fuel:0, cpk=kmF>0?cost/kmF:0;
+  var excT=units.reduce(function(s,u){return s+u.excT;},0);
+
+  var kpis=[
+    ['Km recorridos',fmt(kmAll),'km','todas las unidades'],
+    ['Diésel consumido',fmt(fuel),'L','unidades con lectura de motor'],
+    ['Rendimiento',fmt(eff,2),'km/L','flota (km de unidades con consumo)'],
+    ['Costo de combustible',money(cost),'','según precio por región'],
+    ['Costo por km',money(cpk,2),'','flota'],
+    ['Diésel en ralentí',fuel>0?fmt(100*idleF/fuel,1):'0','%',fmt(idleF)+' L sin avanzar'],
+  ];
+  if(S.rules.length) kpis.push(['Alertas (reglas agregadas)',fmt(excT),'','en el periodo']);
+  document.getElementById('kpis').innerHTML=kpis.map(function(k){return '<div class="kpi"><div class="l">'+k[0]+'</div><div class="v">'+k[1]+'<small>'+k[2]+'</small></div><div class="n">'+k[3]+'</div></div>';}).join('');
+
+  var kmByDay=days.map(function(d){ var s=0; DEVICES.forEach(function(dev){var r=(DAILY[dev.id]||{})[d]; if(r)s+=r.km;}); return s; });
+  var effByDay=days.map(function(d){ var km=0,f=0; DEVICES.forEach(function(dev){var r=(DAILY[dev.id]||{})[d]; if(r&&r.fuel>0.5){km+=r.km;f+=r.fuel;}}); return f>0.5?km/f:null; });
+  barChart(document.getElementById('chKm'),days,kmByDay,'km',0);
+  lineChart(document.getElementById('chEff'),days,effByDay,'km/L');
+
+  renderRuleUI(); renderTable(units); renderScatter(units);
+}
+
+function renderRuleUI(){
+  var sel=document.getElementById('ruleSel');
+  var avail=RULES.filter(function(r){return S.rules.indexOf(r.id)===-1;});
+  sel.innerHTML=avail.map(function(r){return '<option value="'+r.id+'">'+escapeHtml(r.name)+'</option>';}).join('');
+  var chips=document.getElementById('ruleChips');
+  chips.innerHTML=S.rules.map(function(rid){
+    var r=null; RULES.forEach(function(x){if(x.id===rid)r=x;}); r=r||{name:rid};
+    return '<span class="chip"><b>'+escapeHtml(r.name)+'</b><button type="button" data-rid="'+rid+'" aria-label="Quitar">✕</button></span>';
+  }).join('');
+  Array.prototype.forEach.call(chips.querySelectorAll('button'),function(btn){
+    btn.addEventListener('click',function(){ S.rules=S.rules.filter(function(x){return x!==btn.getAttribute('data-rid');}); save(); render(); });
+  });
+}
+
+function renderTable(units){
+  var ruleCols=S.rules.map(function(rid){ var r=null; RULES.forEach(function(x){if(x.id===rid)r=x;}); return {rid:rid,name:(r||{name:rid}).name}; });
+  var cols=[{k:'name',l:'Unidad'},{k:'reg',l:'Región'},{k:'km',l:'Km'},{k:'fuel',l:'Diésel (L)'},
+            {k:'eff',l:'Rend. (km/L)'},{k:'cost',l:'Costo diésel'},{k:'cpk',l:'$/km'}]
+           .concat(ruleCols.map(function(rc){return {k:'exc:'+rc.rid,l:rc.name,exc:true};}));
+  var thead=document.querySelector('#tbl thead');
+  thead.innerHTML='<tr>'+cols.map(function(c){return '<th data-k="'+c.k+'" class="'+(c.exc?'exc-col':'')+'" title="Ordenar">'+escapeHtml(c.l)+(sortKey===c.k?(sortDir<0?' ↓':' ↑'):'')+'</th>';}).join('')+'</tr>';
+  Array.prototype.forEach.call(thead.querySelectorAll('th'),function(th){
+    th.addEventListener('click',function(){ var k=th.getAttribute('data-k'); if(sortKey===k)sortDir*=-1; else{sortKey=k;sortDir=-1;} render(); });
+  });
+
+  function val(u,k){ return k==='name'?u.dev.name:k==='reg'?u.reg:k.indexOf('exc:')===0?(u.exc[k.slice(4)]||0):u[k]; }
+  var sorted=units.slice().sort(function(x,y){
+    var a=val(x,sortKey), b=val(y,sortKey);
+    if(a==null)a=-Infinity; if(b==null)b=-Infinity;
+    if(typeof a==='string')return a.localeCompare(b)*-sortDir;
+    return (a-b)*sortDir;
+  });
+
+  var effs=units.filter(function(u){return u.eff!=null;}).map(function(u){return u.eff;});
+  var bestE=Math.max.apply(null,effs.concat([-Infinity])), worstE=Math.min.apply(null,effs.concat([Infinity]));
+
+  var tb=document.querySelector('#tbl tbody');
+  tb.innerHTML=sorted.map(function(u){
+    var effCls=u.eff==null?'':(u.eff===bestE&&effs.length>1?'best':(u.eff===worstE&&effs.length>1?'worst':''));
+    return '<tr>'+
+      '<td><span class="unit">'+escapeHtml(u.dev.name)+'</span>'+(u.dev.plate?'<span class="plate">'+escapeHtml(u.dev.plate)+'</span>':'')+'</td>'+
+      '<td><select data-dev="'+u.dev.id+'" id="reg_'+u.dev.id+'" aria-label="Región de '+escapeHtml(u.dev.name)+'">'+Object.keys(REGIONS).map(function(k){return '<option value="'+k+'"'+(u.reg===k?' selected':'')+'>'+REGIONS[k]+'</option>';}).join('')+'</select></td>'+
+      '<td>'+fmt(u.km)+'</td>'+
+      '<td>'+(u.fuel>0.5?fmt(u.fuel):'—')+'</td>'+
+      '<td class="'+effCls+'">'+(u.eff!=null?fmt(u.eff,2):'—')+'</td>'+
+      '<td>'+(u.fuel>0.5?money(u.cost):'—')+'</td>'+
+      '<td>'+(u.cpk!=null?money(u.cpk,2):'—')+'</td>'+
+      S.rules.map(function(rid){return '<td>'+fmt(u.exc[rid]||0)+'</td>';}).join('')+
+    '</tr>';
+  }).join('');
+  Array.prototype.forEach.call(tb.querySelectorAll('select'),function(s){
+    s.addEventListener('change',function(){ S.regions[s.getAttribute('data-dev')]=s.value; save(); render(); });
+  });
+
+  var t={km:0,fuel:0,cost:0,kmF:0}; var excTot=S.rules.map(function(){return 0;});
+  units.forEach(function(u){ t.km+=u.km; if(u.fuel>0.5){t.fuel+=u.fuel;t.cost+=u.cost;t.kmF+=u.km;} S.rules.forEach(function(rid,i){excTot[i]+=u.exc[rid]||0;}); });
+  document.querySelector('#tbl tfoot').innerHTML=units.length?'<tr>'+
+    '<td>Total flota</td><td></td><td>'+fmt(t.km)+'</td><td>'+fmt(t.fuel)+'</td>'+
+    '<td>'+(t.fuel>0?fmt(t.kmF/t.fuel,2):'—')+'</td><td>'+money(t.cost)+'</td>'+
+    '<td>'+(t.kmF>0?money(t.cost/t.kmF,2):'—')+'</td>'+
+    excTot.map(function(c){return '<td>'+fmt(c)+'</td>';}).join('')+
+  '</tr>':'';
+  document.getElementById('tblNote').textContent=units.length?
+    'Unidades sin actividad en el periodo no se muestran. “—” = sin lectura de consumo de motor (p. ej. remolques).':
+    'Sin actividad en el periodo seleccionado.';
+}
+
+function renderScatter(units){
+  var wrap=document.getElementById('scatterWrap');
+  var per100=(S.scMode||'per100')==='per100';
+  var pts=units.filter(function(u){return u.eff!=null&&u.km>1;}).map(function(u){
+    return {x:per100?u.excT/(u.km/100):u.excT, y:u.eff, label:u.dev.name, raw:u.excT};
+  });
+  if(!S.rules.length||pts.length<2){wrap.hidden=true;return;}
+  wrap.hidden=false;
+  document.getElementById('scPer100').classList.toggle('on',per100);
+  document.getElementById('scTotal').classList.toggle('on',!per100);
+  var st=scatterChart(document.getElementById('chScatter'),pts,per100);
+  var v=document.getElementById('scVerdict');
+  if(!st){ v.textContent='Se necesitan al menos 3 unidades con datos (y variación entre ellas) para estimar la correlación.'; return; }
+  var r=st.r, ar=Math.abs(r);
+  var fuerza=ar>=0.7?'fuerte':ar>=0.4?'moderada':'débil';
+  var msg;
+  if(ar<0.2) msg='correlación <b>r = '+r.toFixed(2)+'</b> — no se observa una relación clara entre estas alertas y el rendimiento en este periodo.';
+  else if(r<0) msg='correlación <b>r = '+r.toFixed(2)+'</b> — relación negativa '+fuerza+': las unidades con más alertas tienden a rendir <b>menos</b> km/L. Sí hay indicio de afectación.';
+  else msg='correlación <b>r = '+r.toFixed(2)+'</b> — relación positiva '+fuerza+': las unidades con más alertas rinden <b>más</b> km/L (la regla agregada puede reflejar más uso en carretera, no necesariamente mala operación).';
+  v.innerHTML=msg+' <span style="color:var(--muted)">Con '+pts.length+' unidades es un indicio, no una conclusión; la línea punteada marca la tendencia.</span>';
+}
+
+/* ---------- wiring ---------- */
+function wire(){
+  document.getElementById('p7').addEventListener('click',function(){S.preset='7d';save();refresh(true);});
+  document.getElementById('p30').addEventListener('click',function(){S.preset='30d';save();refresh(true);});
+  document.getElementById('pc').addEventListener('click',function(){S.preset='custom';save();refresh(true);});
+  var dF=document.getElementById('dFrom'), dT=document.getElementById('dTo');
+  var T=todayLocal();
+  dF.max=dT.max=T; dF.min=dT.min=addDays(T,-365);
+  dF.value=S.from||addDays(T,-6); dT.value=S.to||T;
+  dF.addEventListener('change',function(){S.from=dF.value;if(S.to&&S.from>S.to){S.to=S.from;dT.value=S.to;}S.preset='custom';save();refresh(true);});
+  dT.addEventListener('change',function(){S.to=dT.value;if(S.from&&S.from>S.to){S.from=S.to;dF.value=S.from;}S.preset='custom';save();refresh(true);});
+  [['prP','P'],['prN','N'],['prB','B']].forEach(function(pr){
+    var inp=document.getElementById(pr[0]); inp.value=S.prices[pr[1]];
+    inp.addEventListener('change',function(){S.prices[pr[1]]=parseFloat(inp.value)||0;save();render();});
+  });
+  document.getElementById('ruleAdd').addEventListener('click',function(){
+    var v=document.getElementById('ruleSel').value;
+    if(v&&S.rules.indexOf(v)===-1){S.rules.push(v);save();refresh(false);}
+  });
+  document.getElementById('scPer100').addEventListener('click',function(){S.scMode='per100';save();render();});
+  document.getElementById('scTotal').addEventListener('click',function(){S.scMode='total';save();render();});
+}
+
+/* ---------- MyGeotab Add-In lifecycle ---------- */
+if(typeof geotab!=='undefined'&&geotab.addin){
+  geotab.addin.combustibleAeo = function(){
+    return {
+      initialize:function(api,state,callback){ API=api; wire(); callback(); },
+      focus:function(api,state){
+        API=api; setStatus('Cargando…');
+        loadCore().then(loadRange)
+          .then(function(){ setStatus(null); render(); })
+          .catch(function(e){ setStatus(null); showErr('No se pudieron cargar los datos: '+(e&&e.message?e.message:e)); });
+      },
+      blur:function(){ save(); }
+    };
+  };
+}else{
+  document.addEventListener('DOMContentLoaded',function(){
+    showErr('Esta página es un Add-In de MyGeotab: agrégala en Administración → Configuración del sistema → Complementos y ábrela desde el menú de MyGeotab.');
+  });
+  if(document.readyState!=='loading'){ showErr('Esta página es un Add-In de MyGeotab: agrégala en Administración → Configuración del sistema → Complementos y ábrela desde el menú de MyGeotab.'); }
+}
+</script>
+</body>
+</html>
